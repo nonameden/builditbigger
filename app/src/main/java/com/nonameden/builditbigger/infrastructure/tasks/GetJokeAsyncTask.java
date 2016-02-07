@@ -1,6 +1,7 @@
 package com.nonameden.builditbigger.infrastructure.tasks;
 
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -17,8 +18,10 @@ import java.io.IOException;
 public class GetJokeAsyncTask extends AsyncTask<Void, Void, String> {
 
     private final MyApi apiService;
+    private final OnJokeReceivedListener listener;
 
-    public GetJokeAsyncTask() {
+    public GetJokeAsyncTask(@NonNull OnJokeReceivedListener listener) {
+        this.listener = listener;
         apiService = new MyApi.Builder(AndroidHttp.newCompatibleTransport(),
                 new AndroidJsonFactory(), null)
                 .setRootUrl("https://built-it-bigger-1202.appspot.com/_ah/api/")
@@ -40,5 +43,16 @@ public class GetJokeAsyncTask extends AsyncTask<Void, Void, String> {
             e.printStackTrace();
         }
         return joke == null ? "" : joke.getJoke();
+    }
+
+    @Override
+    protected void onPostExecute(String jokeText) {
+        if (listener != null) {
+            listener.onJokeReceived(jokeText);
+        }
+    }
+
+    public interface OnJokeReceivedListener {
+        void onJokeReceived(String jokeText);
     }
 }

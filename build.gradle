@@ -12,9 +12,6 @@ buildscript {
     }
 }
 
-//evaluationDependsOn ":backend"
-//evaluationDependsOn ":app"
-
 allprojects {
     repositories {
         jcenter()
@@ -24,3 +21,35 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task stopEngine {
+    doLast {
+        tasks.getByPath(":backend:appengineStop")
+    }
+
+}
+
+task doJob {
+    dependsOn = ["startGCE", "doTest", "stopEngine"]
+    doLast {
+        println "job Done!"
+    }
+}
+
+task startGCE {
+    evaluationDependsOn ":backend"
+    project(":backend"){
+        appengine{
+            daemon true
+        }
+    }
+}
+
+task doTest {
+    doLast {
+        tasks.getByPath(":app:connectedCheck")
+    }
+}
+
+doTest.mustRunAfter startGCE
+stopEngine.mustRunAfter doTest
